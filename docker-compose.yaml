@@ -4,9 +4,9 @@ services:
     container_name: currency_converter
     restart: always
     environment:
-      POSTGRES_USER: converter
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: mydb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
