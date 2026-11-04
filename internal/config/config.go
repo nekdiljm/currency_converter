@@ -20,12 +20,12 @@ type Config struct {
 
 func Load() (*Config, error) {
 	if err := godotenv.Load(); err != nil {
-		return nil, fmt.Errorf("error load env")
+		return nil, fmt.Errorf("load env: %w", err)
 	}
 
 	var cfg Config
 	if err := envconfig.Process("", &cfg); err != nil {
-		return nil, fmt.Errorf("error to read Config")
+		return nil, fmt.Errorf("read Config: %w", err)
 	}
 
 	return &cfg, nil

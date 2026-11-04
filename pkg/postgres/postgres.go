@@ -10,11 +10,11 @@ import (
 func New(ctx context.Context, conn string) (*pgxpool.Pool, error) {
 	pool, err := pgxpool.New(ctx, conn)
 	if err != nil {
-		return nil, fmt.Errorf("error create connection")
+		return nil, fmt.Errorf("error create connection: %w", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
-		return nil, fmt.Errorf("error ping connection")
+		return nil, fmt.Errorf("error ping connection: %w", err)
 	}
 
 	return pool, nil
