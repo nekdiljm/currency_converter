@@ -8,14 +8,14 @@ import (
 )
 
 type Config struct {
-	HTTPHost     string `envconfig:"HTTP_HOST" default:"localhost"`
-	HTTPPort     string `envconfig:"HTTP_PORT" default:"8080"`
-	ConnDb       string `envconfig:"CONN_DB" default:"postgres://currency_converter:123456@localhost:5432/currency_converter?sslmode=disable" `
-	PostgresHost string `envconfig:"POSTGRES_HOST" default:"localhost"`
-	PostgresPort string `envconfig:"POSTGRES_PORT" default:"5432"`
-	PostgresUser string `envconfig:"POSTGRES_USER" default:"currency_converter"`
-	PostgresPass string `envconfig:"POSTGRES_PASS" default:"123456"`
-	PostgresDb   string `envconfig:"POSTGRES_DB" default:"currency_converter"`
+	HTTPHost     string `envconfig:"HTTP_HOST" required:"true"`
+	HTTPPort     string `envconfig:"HTTP_PORT" required:"true"`
+	ConnDb       string `envconfig:"CONN_DB" required:"true"`
+	PostgresHost string `envconfig:"POSTGRES_HOST" required:"true"`
+	PostgresPort string `envconfig:"POSTGRES_PORT" required:"true"`
+	PostgresUser string `envconfig:"POSTGRES_USER" required:"true"`
+	PostgresPass string `envconfig:"POSTGRES_PASS" required:"true"`
+	PostgresDb   string `envconfig:"POSTGRES_DB" required:"true"`
 }
 
 func Load() (*Config, error) {
