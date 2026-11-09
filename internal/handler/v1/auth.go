@@ -38,11 +38,11 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.authService.Login(r.Context(), req.toInput())
+	tokens, err := h.authService.Login(r.Context(), req.toInput())
 	if err != nil {
 		response.Error(w, err)
 		return
 	}
 
-	response.JSON(w, toLoginResponse(user), http.StatusOK)
+	response.JSON(w, toLoginResponse(tokens), http.StatusOK)
 }

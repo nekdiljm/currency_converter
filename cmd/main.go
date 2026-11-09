@@ -34,7 +34,7 @@ func main() {
 	}
 
 	userRepo := user.NewRepository(db)
-	authService := auth.NewService(userRepo)
+	authService := auth.NewService(userRepo, &cfg)
 	authHandler := v1.NewHandler(authService)
 
 	server := http.Server{

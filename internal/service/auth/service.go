@@ -2,11 +2,14 @@ package auth
 
 import (
 	"context"
+	"currency-converter/internal/config"
 	"currency-converter/internal/models"
 	"currency-converter/internal/repository"
+	"currency-converter/pkg/jwt"
 	"fmt"
 	"net/mail"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -18,11 +21,19 @@ const (
 )
 
 type AuthService struct {
-	userRepo repository.UserRepository
+	userRepo   repository.UserRepository
+	jwtSecret  string
+	accessTTL  time.Duration
+	refreshTTL time.Duration
 }
 
-func NewService(repo repository.UserRepository) *AuthService {
-	return &AuthService{userRepo: repo}
+func NewService(repo repository.UserRepository, cfg *config.Config) *AuthService {
+	return &AuthService{
+		userRepo:   repo,
+		jwtSecret:  cfg.JwtSecret,
+		accessTTL:  cfg.JwtAccessTTL,
+		refreshTTL: cfg.JwtRefreshTTL,
+	}
 }
 
 type RegisterRequest struct {
@@ -89,6 +100,11 @@ type LoginRequest struct {
 	Password string
 }
 
+type TokenPairs struct {
+	AccessToken  string
+	RefreshToken string
+}
+
 func (l *LoginRequest) validate() error {
 	l.Email = strings.ToLower(strings.TrimSpace(l.Email))
 	if l.Email == "" || l.Password == "" {
@@ -102,19 +118,32 @@ func (l *LoginRequest) validate() error {
 	return nil
 }
 
-func (s *AuthService) Login(ctx context.Context, loginRequest *LoginRequest) (*models.User, error) {
+func (s *AuthService) Login(ctx context.Context, loginRequest *LoginRequest) (TokenPairs, error) {
 	if err := loginRequest.validate(); err != nil {
-		return nil, err
+		return TokenPairs{}, err
 	}
 
 	user, err := s.userRepo.GetByEmail(ctx, loginRequest.Email)
 	if err != nil {
-		return nil, models.ErrUserNotFound
+		return TokenPairs{}, models.ErrUserNotFound
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password)); err != nil {
-		return nil, models.ErrInvalidPass
+		return TokenPairs{}, models.ErrInvalidPass
 	}
 
-	return user, nil
+	accessToken, err := jwt.GenerateToken(user.ID, s.jwtSecret, s.accessTTL, "access")
+	if err != nil {
+		return TokenPairs{}, fmt.Errorf("generate access token: %w", err)
+	}
+
+	refreshToken, err := jwt.GenerateToken(user.ID, s.jwtSecret, s.refreshTTL, "refresh")
+	if err != nil {
+		return TokenPairs{}, fmt.Errorf("generate refresh token: %w", err)
+	}
+
+	return TokenPairs{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }

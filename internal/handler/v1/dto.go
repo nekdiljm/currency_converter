@@ -51,11 +51,13 @@ func toUserResponse(u *models.User) registerResponse {
 }
 
 type loginResponse struct {
-	Email string `json:"email"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
-func toLoginResponse(u *models.User) loginResponse {
+func toLoginResponse(tokens auth.TokenPairs) loginResponse {
 	return loginResponse{
-		Email: u.Email,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
 	}
 }
