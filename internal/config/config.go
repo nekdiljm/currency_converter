@@ -18,15 +18,15 @@ type Config struct {
 	PostgresDb   string `envconfig:"POSTGRES_DB" required:"true"`
 }
 
-func Load() (*Config, error) {
+func Load() (Config, error) {
 	if err := godotenv.Load(); err != nil {
-		return nil, fmt.Errorf("load env: %w", err)
+		return Config{}, fmt.Errorf("load env: %w", err)
 	}
 
 	var cfg Config
 	if err := envconfig.Process("", &cfg); err != nil {
-		return nil, fmt.Errorf("read Config: %w", err)
+		return Config{}, fmt.Errorf("read Config: %w", err)
 	}
 
-	return &cfg, nil
+	return cfg, nil
 }

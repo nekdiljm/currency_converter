@@ -3,31 +3,38 @@ package user
 import (
 	"context"
 	"currency-converter/internal/models"
+	"currency-converter/pkg/postgres"
 	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
+const uniqueViolationCode = "23505"
+
 type Repository struct {
-	db *pgxpool.Pool
+	db postgres.DbCommands
 }
 
-func NewRepository(db *pgxpool.Pool) *Repository {
+func NewRepository(db postgres.DbCommands) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) Create(ctx context.Context, user *models.User) error {
+func (r *Repository) Create(ctx context.Context, user *models.User) (int, error) {
 	err := r.db.QueryRow(ctx,
 		`INSERT INTO users (first_name, last_name, email, password)
 			 VALUES ($1, $2, $3,$4)
 			 RETURNING id, created_at;`, user.FirstName, user.LastName, user.Email, user.Password).Scan(&user.ID, &user.CreatedAt)
 	if err != nil {
-		return fmt.Errorf("insert user: %w", err)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == uniqueViolationCode {
+			return 0, models.ErrEmailAlreadyExists
+		}
+		return 0, fmt.Errorf("create user: %w", err)
 	}
 
-	return nil
+	return user.ID, nil
 }
 
 func (r *Repository) GetByEmail(ctx context.Context, email string) (*models.User, error) {

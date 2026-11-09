@@ -5,6 +5,7 @@ import (
 	"currency-converter/internal/models"
 	"currency-converter/internal/repository"
 	"fmt"
+	"net/mail"
 	"strings"
 	"unicode/utf8"
 
@@ -17,73 +18,101 @@ const (
 )
 
 type AuthService struct {
-	repo repository.UserRepository
+	userRepo repository.UserRepository
 }
 
 func NewService(repo repository.UserRepository) *AuthService {
-	return &AuthService{repo: repo}
+	return &AuthService{userRepo: repo}
 }
 
-func (s *AuthService) Register(ctx context.Context, firstName, lastName, email, password string) (*models.User, error) {
+type RegisterRequest struct {
+	FirstName string
+	LastName  string
+	Email     string
+	Password  string
+}
 
-	firstName = strings.TrimSpace(firstName)
-	lastName = strings.TrimSpace(lastName)
+func (r *RegisterRequest) validate() error {
+	r.FirstName = strings.TrimSpace(r.FirstName)
+	r.LastName = strings.TrimSpace(r.LastName)
+	r.Email = strings.ToLower(strings.TrimSpace(r.Email))
 
-	email = strings.ToLower(strings.TrimSpace(email))
-
-	if firstName == "" || lastName == "" || email == "" || password == "" {
-		return nil, models.ErrInvalidInput
+	if r.FirstName == "" || r.LastName == "" || r.Email == "" || r.Password == "" {
+		return models.ErrInvalidInput
 	}
 
-	if utf8.RuneCountInString(firstName) > maxRuneInName {
-		return nil, models.ErrInvalidInput
+	if utf8.RuneCountInString(r.FirstName) > maxRuneInName {
+		return models.ErrFirstNameTooLong
 	}
 
-	if utf8.RuneCountInString(lastName) > maxRuneInName {
-		return nil, models.ErrInvalidInput
+	if addr, err := mail.ParseAddress(r.Email); err != nil || addr.Address != r.Email {
+		return models.ErrInvalidEmail
 	}
 
-	if utf8.RuneCountInString(password) > maxRuneInPass {
-		return nil, models.ErrInvalidInput
+	if utf8.RuneCountInString(r.LastName) > maxRuneInName {
+		return models.ErrLastNameTooLong
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if utf8.RuneCountInString(r.Password) > maxRuneInPass {
+		return models.ErrPasswordTooLong
+	}
+	return nil
+}
+
+func (s *AuthService) Register(ctx context.Context, registerRequest *RegisterRequest) (*models.User, error) {
+	if err := registerRequest.validate(); err != nil {
+		return nil, err
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("generate password hash: %w", err)
 	}
 
 	user := &models.User{
-		FirstName: firstName,
-		LastName:  lastName,
-		Email:     email,
+		FirstName: registerRequest.FirstName,
+		LastName:  registerRequest.LastName,
+		Email:     registerRequest.Email,
 		Password:  string(passwordHash),
 	}
 
-	if err := s.repo.Create(ctx, user); err != nil {
+	user.ID, err = s.userRepo.Create(ctx, user)
+	if err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (s *AuthService) Login(ctx context.Context, email, password string) (*models.User, error) {
-	email = strings.ToLower(email)
-	email = strings.TrimSpace(email)
+type LoginRequest struct {
+	Email    string
+	Password string
+}
 
-	if email == "" || password == "" {
-		return nil, models.ErrInvalidInput
+func (l *LoginRequest) validate() error {
+	l.Email = strings.ToLower(strings.TrimSpace(l.Email))
+	if l.Email == "" || l.Password == "" {
+		return models.ErrInvalidCredentials
 	}
 
-	if utf8.RuneCountInString(password) > maxRuneInPass {
-		return nil, models.ErrInvalidInput
+	if utf8.RuneCountInString(l.Password) > maxRuneInPass {
+		return models.ErrPasswordTooLong
 	}
 
-	user, err := s.repo.GetByEmail(ctx, email)
+	return nil
+}
+
+func (s *AuthService) Login(ctx context.Context, loginRequest *LoginRequest) (*models.User, error) {
+	if err := loginRequest.validate(); err != nil {
+		return nil, err
+	}
+
+	user, err := s.userRepo.GetByEmail(ctx, loginRequest.Email)
 	if err != nil {
 		return nil, models.ErrUserNotFound
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password)); err != nil {
 		return nil, models.ErrInvalidPass
 	}
 
