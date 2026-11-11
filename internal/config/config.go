@@ -47,7 +47,8 @@ type JwtConfig struct {
 }
 
 type CurrencyRatesConfig struct {
-	CurrencyRatesHost string `env:"CURRENCY_RATES_HOST" default:"https://api.frankfurter.dev"`
+	Host    string        `env:"CURRENCY_RATES_HOST" default:"https://api.frankfurter.dev/v2"`
+	Timeout time.Duration `env:"	CURRENCY_RATES_CLIENT_TIMEOUT" default:"10s"`
 }
 
 func Load() (Config, error) {

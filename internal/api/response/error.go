@@ -1,10 +1,10 @@
 package response
 
 import (
+	"currency-converter/internal/repository/models"
 	"errors"
 	"net/http"
 
-	"currency-converter/internal/models"
 	"currency-converter/pkg/serializer"
 )
 
@@ -40,7 +40,9 @@ func Error(w http.ResponseWriter, err error) {
 		models.ErrInvalidInput,
 		models.ErrInvalidPass,
 		models.ErrEmailAlreadyExists,
-		models.ErrInvalidEmail):
+		models.ErrInvalidEmail,
+		models.ErrInvalidAmount,
+		models.ErrInvalidCurrency):
 
 		errResp.Error.Code = http.StatusBadRequest
 		w.WriteHeader(http.StatusBadRequest)

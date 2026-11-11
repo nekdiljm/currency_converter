@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"context"
+	"currency-converter/internal/repository/models"
 	"currency-converter/internal/service/auth"
 	"net/http"
 	"strings"
 
-	"currency-converter/internal/handler/response"
-	"currency-converter/internal/models"
+	"currency-converter/internal/api/response"
 	"currency-converter/pkg/logger"
 )
 

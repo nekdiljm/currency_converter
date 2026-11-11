@@ -15,4 +15,6 @@ var (
 	ErrUnauthorized       = errors.New("unauthorized")
 	ErrInvalidToken       = errors.New("invalid token")
 	ErrSessionNotFound    = errors.New("session not found")
+	ErrInvalidAmount      = errors.New("amount must be greater than zero")
+	ErrInvalidCurrency    = errors.New("invalid currency")
 )

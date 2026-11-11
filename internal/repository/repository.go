@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"currency-converter/internal/models"
+	"currency-converter/internal/repository/models"
 )
 
 type UserRepository interface {

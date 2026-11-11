@@ -2,10 +2,10 @@ package session
 
 import (
 	"context"
+	"currency-converter/internal/repository/models"
 	"fmt"
 	"time"
 
-	"currency-converter/internal/models"
 	"currency-converter/pkg/redis"
 )
 

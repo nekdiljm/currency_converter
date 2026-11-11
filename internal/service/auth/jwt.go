@@ -1,13 +1,12 @@
 package auth
 
 import (
+	"currency-converter/internal/repository/models"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-
-	"currency-converter/internal/models"
 )
 
 func (s *authService) generateToken(userID int, sessionID string, tokenType string, ttl time.Duration) (string, error) {

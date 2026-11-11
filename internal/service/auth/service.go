@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	models2 "currency-converter/internal/repository/models"
 	"errors"
 	"fmt"
 	"net/mail"
@@ -13,7 +14,6 @@ import (
 	"go.uber.org/zap"
 
 	"currency-converter/internal/config"
-	"currency-converter/internal/models"
 	"currency-converter/internal/repository"
 	"currency-converter/internal/repository/session"
 	"currency-converter/pkg/logger"
@@ -32,7 +32,7 @@ const (
 )
 
 type AuthService interface {
-	Register(ctx context.Context, request *RegisterRequest) (*models.User, error)
+	Register(ctx context.Context, request *RegisterRequest) (*models2.User, error)
 	Login(ctx context.Context, loginRequest *LoginRequest) (TokenPairs, error)
 	Logout(ctx context.Context, refreshToken string) error
 	Refresh(ctx context.Context, refreshToken string) (TokenPairs, error)
@@ -77,28 +77,28 @@ func (r *RegisterRequest) validate() error {
 	r.Email = strings.ToLower(strings.TrimSpace(r.Email))
 
 	if r.FirstName == "" || r.LastName == "" || r.Email == "" || r.Password == "" {
-		return models.ErrInvalidInput
+		return models2.ErrInvalidInput
 	}
 
 	if utf8.RuneCountInString(r.FirstName) > maxRuneInName {
-		return models.ErrFirstNameTooLong
+		return models2.ErrFirstNameTooLong
 	}
 
 	if addr, err := mail.ParseAddress(r.Email); err != nil || addr.Address != r.Email {
-		return models.ErrInvalidEmail
+		return models2.ErrInvalidEmail
 	}
 
 	if utf8.RuneCountInString(r.LastName) > maxRuneInName {
-		return models.ErrLastNameTooLong
+		return models2.ErrLastNameTooLong
 	}
 
 	if utf8.RuneCountInString(r.Password) > maxRuneInPass {
-		return models.ErrPasswordTooLong
+		return models2.ErrPasswordTooLong
 	}
 	return nil
 }
 
-func (s *authService) Register(ctx context.Context, registerRequest *RegisterRequest) (*models.User, error) {
+func (s *authService) Register(ctx context.Context, registerRequest *RegisterRequest) (*models2.User, error) {
 	if err := registerRequest.validate(); err != nil {
 		s.logger.Warn("error on request validation", zap.Error(err), zap.Any("request", registerRequest))
 		return nil, err
@@ -110,7 +110,7 @@ func (s *authService) Register(ctx context.Context, registerRequest *RegisterReq
 		return nil, fmt.Errorf("generate password hash: %w", err)
 	}
 
-	user := &models.User{
+	user := &models2.User{
 		FirstName: registerRequest.FirstName,
 		LastName:  registerRequest.LastName,
 		Email:     registerRequest.Email,
@@ -139,11 +139,11 @@ type TokenPairs struct {
 func (l *LoginRequest) validate() error {
 	l.Email = strings.ToLower(strings.TrimSpace(l.Email))
 	if l.Email == "" || l.Password == "" {
-		return models.ErrInvalidCredentials
+		return models2.ErrInvalidCredentials
 	}
 
 	if utf8.RuneCountInString(l.Password) > maxRuneInPass {
-		return models.ErrPasswordTooLong
+		return models2.ErrPasswordTooLong
 	}
 
 	return nil
@@ -157,7 +157,7 @@ func (s *authService) Login(ctx context.Context, loginRequest *LoginRequest) (To
 
 	user, err := s.userRepo.GetByEmail(ctx, loginRequest.Email)
 	if err != nil {
-		if errors.Is(err, models.ErrUserNotFound) {
+		if errors.Is(err, models2.ErrUserNotFound) {
 			s.logger.Warn("user not found by email", zap.Error(err), zap.String("email", loginRequest.Email))
 		} else {
 			s.logger.Error("failed to get user by email", zap.Error(err))
@@ -168,7 +168,7 @@ func (s *authService) Login(ctx context.Context, loginRequest *LoginRequest) (To
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password)); err != nil {
 		s.logger.Warn("error on compare password", zap.Error(err))
-		return TokenPairs{}, models.ErrInvalidPass
+		return TokenPairs{}, models2.ErrInvalidPass
 	}
 
 	sessionID := uuid.NewV7().String()
@@ -198,7 +198,7 @@ func (s *authService) Login(ctx context.Context, loginRequest *LoginRequest) (To
 func (s *authService) Logout(ctx context.Context, refreshToken string) error {
 	if refreshToken == "" {
 		s.logger.Warn("invalid refresh token")
-		return models.ErrInvalidToken
+		return models2.ErrInvalidToken
 	}
 
 	_, sessionID, err := s.parse(refreshToken, refreshTokenType)
@@ -223,7 +223,7 @@ func (s *authService) Authenticate(ctx context.Context, accessToken string) (int
 	}
 
 	if err := s.session.Exists(ctx, sessionID); err != nil {
-		if errors.Is(err, models.ErrSessionNotFound) {
+		if errors.Is(err, models2.ErrSessionNotFound) {
 			s.logger.Warn("session not found")
 		} else {
 			s.logger.Error("failed to check sessionID", zap.Error(err))

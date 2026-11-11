@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"currency-converter/internal/client/currencyratesprovider"
+	"currency-converter/internal/service/currencyconverter"
 	"errors"
 	"log"
 	"net"
@@ -11,9 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	"currency-converter/internal/api"
+	"currency-converter/internal/api/v1"
 	"currency-converter/internal/config"
-	"currency-converter/internal/handler"
-	"currency-converter/internal/handler/v1"
 	"currency-converter/internal/repository/session"
 	"currency-converter/internal/repository/user"
 	"currency-converter/internal/service/auth"
@@ -54,12 +56,15 @@ func main() {
 	userRepo := user.NewRepository(db)
 	sessionRepo := session.NewRepository(redisClient)
 
+	currencyRatesProvider := currencyratesprovider.NewClient(cfg.CurrencyRatesConfig.Host, cfg.CurrencyRatesConfig.Timeout)
+	currencyConverterService := currencyconverter.NewService(currencyRatesProvider, redisClient, logger)
+
 	authService := auth.NewService(&cfg, userRepo, sessionRepo, logger)
-	authHandler := v1.NewHandler(authService, logger)
+	handler := v1.NewHandler(authService, currencyConverterService, logger)
 
 	server := http.Server{
 		Addr:    net.JoinHostPort(cfg.ServerConfig.HTTPHost, cfg.ServerConfig.HTTPPort),
-		Handler: handler.NewRouter(authHandler, authService, logger).InitRouter(),
+		Handler: api.NewRouter(handler, authService, logger).InitRouter(),
 	}
 
 	done := make(chan struct{}, 1)
@@ -84,6 +89,9 @@ func main() {
 	if err := server.Shutdown(ctx); err != nil {
 		logger.Error("failed to shutdown server", zap.Error(err))
 	}
+
+	logger.Info("close currency rates provider")
+	currencyRatesProvider.Close()
 
 	logger.Info("close redis")
 	if err := redisClient.Close(); err != nil {

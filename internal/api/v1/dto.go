@@ -1,10 +1,13 @@
 package v1
 
 import (
+	"currency-converter/internal/repository/models"
+	"currency-converter/internal/service/currencyconverter"
 	"time"
 
-	"currency-converter/internal/models"
 	"currency-converter/internal/service/auth"
+
+	"github.com/shopspring/decimal"
 )
 
 type registerRequest struct {
@@ -69,4 +72,34 @@ type logoutRequest struct {
 
 type refreshRequest struct {
 	RefreshToken string `json:"refreshToken"`
+}
+
+type convertRequest struct {
+	Amount decimal.Decimal `json:"amount"`
+	From   string          `json:"from"`
+	To     string          `json:"to"`
+}
+
+func (c *convertRequest) toInput() currencyconverter.ConvertRequest {
+	return currencyconverter.ConvertRequest{
+		Amount: c.Amount,
+		From:   c.From,
+		To:     c.To,
+	}
+}
+
+type convertResponse struct {
+	ConvertedAmount decimal.Decimal `json:"convertedAmount"`
+	Rate            decimal.Decimal `json:"rate"`
+	From            string          `json:"from"`
+	To              string          `json:"to"`
+}
+
+func toConvertResponse(response currencyconverter.ConvertResponse) convertResponse {
+	return convertResponse{
+		ConvertedAmount: response.ConvertedAmount,
+		Rate:            response.Rate,
+		From:            response.From,
+		To:              response.To,
+	}
 }

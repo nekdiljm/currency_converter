@@ -1,27 +1,13 @@
 package v1
 
 import (
-	"currency-converter/internal/service/auth"
 	"net/http"
 
 	"go.uber.org/zap"
 
-	"currency-converter/internal/handler/response"
-	"currency-converter/pkg/logger"
+	"currency-converter/internal/api/response"
 	"currency-converter/pkg/serializer"
 )
-
-type Handler struct {
-	authService auth.AuthService
-	logger      logger.Logger
-}
-
-func NewHandler(authService auth.AuthService, logger logger.Logger) *Handler {
-	return &Handler{
-		authService: authService,
-		logger:      logger,
-	}
-}
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	req := registerRequest{}
@@ -65,7 +51,8 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authService.Logout(r.Context(), req.RefreshToken); err != nil {
+	err := h.authService.Logout(r.Context(), req.RefreshToken)
+	if err != nil {
 		response.Error(w, err)
 		return
 	}
