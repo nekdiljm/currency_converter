@@ -1,9 +1,10 @@
 package v1
 
 import (
+	"time"
+
 	"currency-converter/internal/models"
 	"currency-converter/internal/service/auth"
-	"time"
 )
 
 type registerRequest struct {
@@ -38,7 +39,7 @@ type registerResponse struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
-	CreatedAt string `json:"created_at"`
+	CreatedAt string `json:"createdAt"`
 }
 
 func toUserResponse(u *models.User) registerResponse {
@@ -50,14 +51,22 @@ func toUserResponse(u *models.User) registerResponse {
 	}
 }
 
-type loginResponse struct {
+type tokenPairsResponse struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
 }
 
-func toLoginResponse(tokens auth.TokenPairs) loginResponse {
-	return loginResponse{
+func toTokenPairsResponse(tokens auth.TokenPairs) tokenPairsResponse {
+	return tokenPairsResponse{
 		AccessToken:  tokens.AccessToken,
 		RefreshToken: tokens.RefreshToken,
 	}
+}
+
+type logoutRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type refreshRequest struct {
+	RefreshToken string `json:"refreshToken"`
 }

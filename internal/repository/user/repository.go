@@ -2,10 +2,11 @@ package user
 
 import (
 	"context"
-	"currency-converter/internal/models"
-	"currency-converter/pkg/postgres"
 	"errors"
 	"fmt"
+
+	"currency-converter/internal/models"
+	"currency-converter/pkg/postgres"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -44,7 +45,7 @@ func (r *Repository) GetByEmail(ctx context.Context, email string) (*models.User
 			 WHERE email=$1`, email).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user not found: %w", err)
+			return nil, models.ErrUserNotFound
 		}
 
 		return nil, fmt.Errorf("get user by email: %w", err)

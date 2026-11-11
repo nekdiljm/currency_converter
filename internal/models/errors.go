@@ -12,4 +12,7 @@ var (
 	ErrFirstNameTooLong   = errors.New("first name must be at most 100 characters")
 	ErrLastNameTooLong    = errors.New("last name must be at most 100 characters")
 	ErrInvalidCredentials = errors.New("invalid email or password")
+	ErrUnauthorized       = errors.New("unauthorized")
+	ErrInvalidToken       = errors.New("invalid token")
+	ErrSessionNotFound    = errors.New("session not found")
 )

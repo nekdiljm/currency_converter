@@ -1,10 +1,11 @@
 package response
 
 import (
-	"currency-converter/internal/models"
-	"currency-converter/pkg/serializer"
 	"errors"
 	"net/http"
+
+	"currency-converter/internal/models"
+	"currency-converter/pkg/serializer"
 )
 
 type errorResponse struct {
@@ -46,7 +47,7 @@ func Error(w http.ResponseWriter, err error) {
 	case findErr(err, models.ErrUserNotFound):
 		errResp.Error.Code = http.StatusNotFound
 		w.WriteHeader(http.StatusNotFound)
-	case findErr(err, models.ErrInvalidCredentials):
+	case findErr(err, models.ErrInvalidCredentials, models.ErrUnauthorized, models.ErrInvalidToken):
 		errResp.Error.Code = http.StatusUnauthorized
 		w.WriteHeader(http.StatusUnauthorized)
 	default:
