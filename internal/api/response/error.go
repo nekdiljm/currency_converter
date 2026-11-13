@@ -1,7 +1,7 @@
 package response
 
 import (
-	"currency-converter/internal/repository/models"
+	"currency-converter/internal/models"
 	"errors"
 	"net/http"
 
@@ -42,11 +42,12 @@ func Error(w http.ResponseWriter, err error) {
 		models.ErrEmailAlreadyExists,
 		models.ErrInvalidEmail,
 		models.ErrInvalidAmount,
-		models.ErrInvalidCurrency):
+		models.ErrInvalidCurrency,
+		models.ErrFavoritePairAlreadyExists):
 
 		errResp.Error.Code = http.StatusBadRequest
 		w.WriteHeader(http.StatusBadRequest)
-	case findErr(err, models.ErrUserNotFound):
+	case findErr(err, models.ErrUserNotFound, models.ErrHistoryNotFound, models.ErrFavoritePairNotFound):
 		errResp.Error.Code = http.StatusNotFound
 		w.WriteHeader(http.StatusNotFound)
 	case findErr(err, models.ErrInvalidCredentials, models.ErrUnauthorized, models.ErrInvalidToken):

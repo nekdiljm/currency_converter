@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"currency-converter/internal/client/currencyratesprovider"
+	"currency-converter/internal/repository/conversionhistory"
+	"currency-converter/internal/repository/favoritepairs"
 	"currency-converter/internal/service/currencyconverter"
+	favpairssrv "currency-converter/internal/service/favoritepairs"
 	"errors"
 	"log"
 	"net"
@@ -55,12 +58,15 @@ func main() {
 
 	userRepo := user.NewRepository(db)
 	sessionRepo := session.NewRepository(redisClient)
-
-	currencyRatesProvider := currencyratesprovider.NewClient(cfg.CurrencyRatesConfig.Host, cfg.CurrencyRatesConfig.Timeout)
-	currencyConverterService := currencyconverter.NewService(currencyRatesProvider, redisClient, logger)
+	conversionHistoryRepo := conversionhistory.NewRepository(db)
+	favoritePairsRepo := favoritepairs.NewRepository(db)
 
 	authService := auth.NewService(&cfg, userRepo, sessionRepo, logger)
-	handler := v1.NewHandler(authService, currencyConverterService, logger)
+	currencyRatesProvider := currencyratesprovider.NewClient(cfg.CurrencyRatesConfig.Host, cfg.CurrencyRatesConfig.Timeout)
+	currencyConverterService := currencyconverter.NewService(currencyRatesProvider, conversionHistoryRepo, redisClient, logger)
+	favoritePairsService := favpairssrv.NewService(favoritePairsRepo, logger)
+
+	handler := v1.NewHandler(authService, currencyConverterService, favoritePairsService, logger)
 
 	server := http.Server{
 		Addr:    net.JoinHostPort(cfg.ServerConfig.HTTPHost, cfg.ServerConfig.HTTPPort),

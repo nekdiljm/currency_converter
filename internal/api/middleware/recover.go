@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"currency-converter/internal/api/response"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -11,8 +12,7 @@ func Recover(next http.Handler) http.Handler {
 		defer func() {
 			if p := recover(); p != nil {
 				err := fmt.Errorf("panic: %v\n%s", p, debug.Stack())
-				w.WriteHeader(http.StatusInternalServerError)
-				_, _ = w.Write([]byte(err.Error()))
+				response.Error(w, err)
 				return
 			}
 		}()

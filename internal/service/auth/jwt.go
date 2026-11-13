@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"currency-converter/internal/repository/models"
+	"currency-converter/internal/models"
 	"fmt"
 	"strconv"
 	"time"

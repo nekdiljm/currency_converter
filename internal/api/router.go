@@ -1,7 +1,7 @@
 package api
 
 import (
-	"currency-converter/internal/service/auth"
+	"currency-converter/internal/service"
 	"net/http"
 
 	"currency-converter/internal/api/middleware"
@@ -11,11 +11,11 @@ import (
 
 type Router struct {
 	handler     *v1.Handler
-	authService auth.AuthService
+	authService service.AuthService
 	logger      logger.Logger
 }
 
-func NewRouter(handler *v1.Handler, authService auth.AuthService, logger logger.Logger) *Router {
+func NewRouter(handler *v1.Handler, authService service.AuthService, logger logger.Logger) *Router {
 	return &Router{
 		handler:     handler,
 		authService: authService,
@@ -26,14 +26,18 @@ func NewRouter(handler *v1.Handler, authService auth.AuthService, logger logger.
 func (r *Router) InitRouter() http.Handler {
 	mux := http.NewServeMux()
 	mw := middleware.New(r.authService, r.logger)
-	mwFn := mw.Auth()
 
 	mux.HandleFunc("POST /api/v1/register", r.handler.Register)
 	mux.HandleFunc("POST /api/v1/login", r.handler.Login)
 	mux.HandleFunc("POST /api/v1/logout", r.handler.Logout)
 	mux.HandleFunc("POST /api/v1/refresh", r.handler.Refresh)
 
-	mux.Handle("QUERY /api/v1/currency-converter", mwFn(http.HandlerFunc(r.handler.Converter)))
+	mux.Handle("POST /api/v1/currency-converter", mw.ApplyAuth(r.handler.Convert))
+	mux.Handle("GET /api/v1/conversion-history", mw.ApplyAuth(r.handler.GetHistoryByUserID))
 
-	return middleware.Recover(mux)
+	mux.Handle("POST /api/v1/create-favorite-pair", mw.ApplyAuth(r.handler.CreateFavoritePair))
+	mux.Handle("GET /api/v1/favorite_pairs", mw.ApplyAuth(r.handler.GetFavoritePairs))
+	mux.Handle("POST /api/v1/delete-favorite_pair", mw.ApplyAuth(r.handler.DeleteFavoritePair))
+
+	return mw.Logging(middleware.Recover(mux))
 }

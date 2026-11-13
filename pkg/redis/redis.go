@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"time"
@@ -13,7 +14,7 @@ type Cache interface {
 	Set(ctx context.Context, key string, v any, ttl time.Duration) error
 	Get(ctx context.Context, key string, v any) error
 	Exists(ctx context.Context, key string) (bool, error)
-	Delete(ctx context.Context, key string) error
+	Delete(ctx context.Context, key string) (int64, error)
 	Close() error
 }
 
@@ -34,7 +35,12 @@ func New(ctx context.Context, host, port string) (Cache, error) {
 }
 
 func (c *cache) Set(ctx context.Context, key string, v any, ttl time.Duration) error {
-	return c.client.Set(ctx, key, v, ttl).Err()
+	data, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	return c.client.Set(ctx, key, data, ttl).Err()
 }
 
 func (c *cache) Get(ctx context.Context, key string, v any) error {
@@ -49,8 +55,8 @@ func (c *cache) Exists(ctx context.Context, key string) (bool, error) {
 	return n > 0, nil
 }
 
-func (c *cache) Delete(ctx context.Context, key string) error {
-	return c.client.Del(ctx, key).Err()
+func (c *cache) Delete(ctx context.Context, key string) (int64, error) {
+	return c.client.Del(ctx, key).Result()
 }
 
 func (c *cache) Close() error {
