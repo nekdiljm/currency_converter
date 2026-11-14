@@ -17,7 +17,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.authService.Register(r.Context(), req.toInput())
+	user, err := h.services.AuthService.Register(r.Context(), req.toInput())
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -34,7 +34,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokens, err := h.authService.Login(r.Context(), req.toInput())
+	tokens, err := h.services.AuthService.Login(r.Context(), req.toInput())
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -51,7 +51,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.authService.Logout(r.Context(), req.RefreshToken)
+	err := h.services.AuthService.Logout(r.Context(), req.RefreshToken)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -68,7 +68,7 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokens, err := h.authService.Refresh(r.Context(), req.RefreshToken)
+	tokens, err := h.services.AuthService.Refresh(r.Context(), req.RefreshToken)
 	if err != nil {
 		response.Error(w, err)
 		return

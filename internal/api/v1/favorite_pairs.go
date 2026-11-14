@@ -23,7 +23,7 @@ func (h *Handler) CreateFavoritePair(w http.ResponseWriter, r *http.Request) {
 	favPair := req.toInput()
 	favPair.UserID = userID
 
-	id, err := h.favoritePairs.CreateFavPair(ctx, favPair)
+	id, err := h.services.FavoritePairs.CreateFavPair(ctx, favPair)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -38,7 +38,7 @@ func (h *Handler) GetFavoritePairs(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 
-	favoritePairs, err := h.favoritePairs.GetFavoritePairByUserID(ctx, userID, limit, offset)
+	favoritePairs, err := h.services.FavoritePairs.GetFavoritePairByUserID(ctx, userID, limit, offset)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -56,7 +56,7 @@ func (h *Handler) DeleteFavoritePair(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	if err := h.favoritePairs.DeleteFavoritePair(ctx, req.ID); err != nil {
+	if err := h.services.FavoritePairs.DeleteFavoritePair(ctx, req.ID); err != nil {
 		response.Error(w, err)
 	}
 

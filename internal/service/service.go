@@ -5,6 +5,12 @@ import (
 	"currency-converter/internal/models"
 )
 
+type Service struct {
+	AuthService       AuthService
+	CurrencyConverter CurrencyConverter
+	FavoritePairs     FavoritePairs
+}
+
 type AuthService interface {
 	Register(ctx context.Context, request models.RegisterRequest) (models.User, error)
 	Login(ctx context.Context, loginRequest models.LoginRequest) (models.TokenPairs, error)

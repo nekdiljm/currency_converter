@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"currency-converter/internal/client/currencyratesprovider"
+	"currency-converter/internal/repository"
 	"currency-converter/internal/repository/conversionhistory"
 	"currency-converter/internal/repository/favoritepairs"
+	"currency-converter/internal/service"
 	"currency-converter/internal/service/currencyconverter"
 	favpairssrv "currency-converter/internal/service/favoritepairs"
 	"errors"
@@ -56,21 +58,26 @@ func main() {
 		logger.Fatal("failed to connect to redis", zap.Error(err))
 	}
 
-	userRepo := user.NewRepository(db)
-	sessionRepo := session.NewRepository(redisClient)
-	conversionHistoryRepo := conversionhistory.NewRepository(db)
-	favoritePairsRepo := favoritepairs.NewRepository(db)
+	repos := repository.Repository{
+		UserRepository:     user.NewRepository(db),
+		SessionsRepository: session.NewRepository(redisClient),
+		ConversionHistory:  conversionhistory.NewRepository(db),
+		FavoritePairs:      favoritepairs.NewRepository(db),
+	}
 
-	authService := auth.NewService(&cfg, userRepo, sessionRepo, logger)
 	currencyRatesProvider := currencyratesprovider.NewClient(cfg.CurrencyRatesConfig.Host, cfg.CurrencyRatesConfig.Timeout)
-	currencyConverterService := currencyconverter.NewService(currencyRatesProvider, conversionHistoryRepo, redisClient, logger)
-	favoritePairsService := favpairssrv.NewService(favoritePairsRepo, logger)
 
-	handler := v1.NewHandler(authService, currencyConverterService, favoritePairsService, logger)
+	services := service.Service{
+		AuthService:       auth.NewService(&cfg, repos.UserRepository, repos.SessionsRepository, logger),
+		CurrencyConverter: currencyconverter.NewService(currencyRatesProvider, repos.ConversionHistory, redisClient, logger),
+		FavoritePairs:     favpairssrv.NewService(repos.FavoritePairs, logger),
+	}
+
+	handler := v1.NewHandler(services, logger)
 
 	server := http.Server{
 		Addr:    net.JoinHostPort(cfg.ServerConfig.HTTPHost, cfg.ServerConfig.HTTPPort),
-		Handler: api.NewRouter(handler, authService, logger).InitRouter(),
+		Handler: api.NewRouter(handler, services.AuthService, logger).InitRouter(),
 	}
 
 	done := make(chan struct{}, 1)

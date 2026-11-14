@@ -25,7 +25,7 @@ func (h *Handler) Convert(w http.ResponseWriter, r *http.Request) {
 	input := req.toInput()
 	input.UserID = userID
 
-	convertResp, err := h.currencyConverter.Convert(ctx, input)
+	convertResp, err := h.services.CurrencyConverter.Convert(ctx, input)
 	if err != nil {
 		response.Error(w, err)
 		return
@@ -40,7 +40,7 @@ func (h *Handler) GetHistoryByUserID(w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 	cursor, _ := strconv.Atoi(r.URL.Query().Get("cursor"))
 
-	conversionHistory, err := h.currencyConverter.GetHistoryByUserID(ctx, userID, limit, cursor)
+	conversionHistory, err := h.services.CurrencyConverter.GetHistoryByUserID(ctx, userID, limit, cursor)
 	if err != nil {
 		response.Error(w, err)
 		return

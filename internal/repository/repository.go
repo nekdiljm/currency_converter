@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type Repository struct {
+	UserRepository     UserRepository
+	SessionsRepository SessionsRepository
+	ConversionHistory  ConversionHistory
+	FavoritePairs      FavoritePairs
+}
+
 type UserRepository interface {
 	Create(ctx context.Context, user models.User) (int, error)
 	GetByEmail(ctx context.Context, email string) (models.User, error)
