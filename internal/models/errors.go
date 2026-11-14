@@ -20,4 +20,5 @@ var (
 	ErrHistoryNotFound           = errors.New("error history not found")
 	ErrFavoritePairAlreadyExists = errors.New("favorite pair already exists")
 	ErrFavoritePairNotFound      = errors.New("favorite pair not found")
+	ErrInvalidDateFormat         = errors.New("invalid date format")
 )

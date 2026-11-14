@@ -3,6 +3,7 @@ package v1
 import (
 	"currency-converter/internal/api/middleware"
 	"currency-converter/internal/api/response"
+	"currency-converter/internal/models"
 	"currency-converter/pkg/serializer"
 	"net/http"
 	"strconv"
@@ -47,4 +48,23 @@ func (h *Handler) GetHistoryByUserID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.JSON(w, toHistoryResponse(conversionHistory), http.StatusOK)
+}
+
+func (h *Handler) GetCurrencyRatesByDate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	fromDate := r.URL.Query().Get("from")
+	toDate := r.URL.Query().Get("to")
+	baseCurrency := r.URL.Query().Get("base")
+
+	currencyRatesByDateResp, err := h.services.CurrencyConverter.GetCurrencyRatesByDate(ctx, models.CurrencyRatesByDateRequest{
+		FromDate:     fromDate,
+		ToDate:       toDate,
+		BaseCurrency: baseCurrency,
+	})
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+
+	response.JSON(w, toCurrencyRatesByDateResponse(currencyRatesByDateResp), http.StatusOK)
 }

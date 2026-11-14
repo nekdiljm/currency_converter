@@ -43,7 +43,8 @@ func Error(w http.ResponseWriter, err error) {
 		models.ErrInvalidEmail,
 		models.ErrInvalidAmount,
 		models.ErrInvalidCurrency,
-		models.ErrFavoritePairAlreadyExists):
+		models.ErrFavoritePairAlreadyExists,
+		models.ErrInvalidDateFormat):
 
 		errResp.Error.Code = http.StatusBadRequest
 		w.WriteHeader(http.StatusBadRequest)

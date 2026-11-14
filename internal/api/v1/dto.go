@@ -42,12 +42,12 @@ type registerResponse struct {
 	CreatedAt string `json:"createdAt"`
 }
 
-func toUserResponse(u models.User) registerResponse {
+func toUserResponse(in models.User) registerResponse {
 	return registerResponse{
-		FirstName: u.FirstName,
-		LastName:  u.LastName,
-		Email:     u.Email,
-		CreatedAt: u.CreatedAt.Format(time.RFC3339),
+		FirstName: in.FirstName,
+		LastName:  in.LastName,
+		Email:     in.Email,
+		CreatedAt: in.CreatedAt.Format(time.RFC3339),
 	}
 }
 
@@ -56,10 +56,10 @@ type tokenPairsResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-func toTokenPairsResponse(tokens models.TokenPairs) tokenPairsResponse {
+func toTokenPairsResponse(in models.TokenPairs) tokenPairsResponse {
 	return tokenPairsResponse{
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
+		AccessToken:  in.AccessToken,
+		RefreshToken: in.RefreshToken,
 	}
 }
 
@@ -92,12 +92,12 @@ type convertResponse struct {
 	CurrencyTo      string          `json:"currencyTo"`
 }
 
-func toConvertResponse(response models.ConvertResponse) convertResponse {
+func toConvertResponse(in models.ConvertResponse) convertResponse {
 	return convertResponse{
-		ConvertedAmount: response.ConvertedAmount,
-		Rate:            response.Rate,
-		CurrencyFrom:    response.From,
-		CurrencyTo:      response.To,
+		ConvertedAmount: in.ConvertedAmount,
+		Rate:            in.Rate,
+		CurrencyFrom:    in.From,
+		CurrencyTo:      in.To,
 	}
 }
 
@@ -111,11 +111,11 @@ type historyResponse struct {
 	CreatedAt    string          `json:"createdAt"`
 }
 
-func toHistoryResponse(history []models.ConversionHistory) []historyResponse {
-	historyResp := make([]historyResponse, 0, len(history))
+func toHistoryResponse(in []models.ConversionHistory) []historyResponse {
+	out := make([]historyResponse, 0, len(in))
 
-	for _, v := range history {
-		historyResp = append(historyResp, historyResponse{
+	for _, v := range in {
+		out = append(out, historyResponse{
 			ID:           v.ID,
 			CurrencyFrom: v.CurrencyFrom,
 			CurrencyTo:   v.CurrencyTo,
@@ -126,7 +126,7 @@ func toHistoryResponse(history []models.ConversionHistory) []historyResponse {
 		})
 	}
 
-	return historyResp
+	return out
 }
 
 type favoritePairCreateRequest struct {
@@ -157,20 +157,42 @@ type favoritePairsResponse struct {
 	CurrencyTo   string `json:"currencyTo"`
 }
 
-func toFavoritePairsResponse(pairs []models.FavoritePair) []favoritePairsResponse {
-	favoritePairsResp := make([]favoritePairsResponse, 0, len(pairs))
+func toFavoritePairsResponse(in []models.FavoritePair) []favoritePairsResponse {
+	out := make([]favoritePairsResponse, 0, len(in))
 
-	for _, v := range pairs {
-		favoritePairsResp = append(favoritePairsResp, favoritePairsResponse{
+	for _, v := range in {
+		out = append(out, favoritePairsResponse{
 			ID:           v.ID,
 			CurrencyFrom: v.CurrencyFrom,
 			CurrencyTo:   v.CurrencyTo,
 		})
 	}
 
-	return favoritePairsResp
+	return out
 }
 
 type favoritePairsDeleteRequest struct {
 	ID int `json:"id"`
+}
+
+type currencyRatesByDateResponse struct {
+	Date         string          `json:"date"`
+	CurrencyFrom string          `json:"currencyFrom"`
+	CurrencyTo   string          `json:"currencyTo"`
+	Rate         decimal.Decimal `json:"rate"`
+}
+
+func toCurrencyRatesByDateResponse(in []models.CurrencyRatesByDateResponse) []currencyRatesByDateResponse {
+	out := make([]currencyRatesByDateResponse, 0, len(in))
+
+	for _, v := range in {
+		out = append(out, currencyRatesByDateResponse{
+			Date:         v.Date,
+			CurrencyFrom: v.CurrencyFrom,
+			CurrencyTo:   v.CurrencyTo,
+			Rate:         v.Rate,
+		})
+	}
+
+	return out
 }

@@ -34,10 +34,11 @@ func (r *Router) InitRouter() http.Handler {
 
 	mux.Handle("POST /api/v1/currency-converter", mw.ApplyAuth(r.handler.Convert))
 	mux.Handle("GET /api/v1/conversion-history", mw.ApplyAuth(r.handler.GetHistoryByUserID))
+	mux.Handle("GET /api/v1/currency-rates", mw.ApplyAuth(r.handler.GetCurrencyRatesByDate))
 
 	mux.Handle("POST /api/v1/create-favorite-pair", mw.ApplyAuth(r.handler.CreateFavoritePair))
-	mux.Handle("GET /api/v1/favorite_pairs", mw.ApplyAuth(r.handler.GetFavoritePairs))
-	mux.Handle("POST /api/v1/delete-favorite_pair", mw.ApplyAuth(r.handler.DeleteFavoritePair))
+	mux.Handle("GET /api/v1/favorite-pairs", mw.ApplyAuth(r.handler.GetFavoritePairs))
+	mux.Handle("POST /api/v1/delete-favorite-pair", mw.ApplyAuth(r.handler.DeleteFavoritePair))
 
 	return mw.Logging(middleware.Recover(mux))
 }

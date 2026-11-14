@@ -100,3 +100,40 @@ func (s *converterService) GetHistoryByUserID(ctx context.Context, userID, limit
 
 	return history, nil
 }
+
+func (s *converterService) GetCurrencyRatesByDate(
+	ctx context.Context,
+	request models.CurrencyRatesByDateRequest,
+) ([]models.CurrencyRatesByDateResponse, error) {
+	if err := request.Validate(); err != nil {
+		s.logger.Warn("failed to validate currency rates by date", zap.Error(err), zap.Any("request", request))
+		return nil, err
+	}
+
+	var currencyRatesByDate []currencyratesprovider.CurrencyRate
+	key := fmt.Sprintf("currency-rates:%s-%s-%s", request.FromDate, request.ToDate, request.BaseCurrency)
+
+	if err := s.cache.Get(ctx, key, &currencyRatesByDate); err != nil {
+		currencyRatesByDate, err = s.currencyRates.GetCurrencyRatesByDate(ctx, request.FromDate, request.ToDate, request.BaseCurrency)
+		if err != nil {
+			s.logger.Error("failed to get currency rates by date", zap.Error(err), zap.Any("request", request))
+			return nil, err
+		}
+
+		if err := s.cache.Set(ctx, key, &currencyRatesByDate, time.Minute); err != nil {
+			s.logger.Error("failed to save currency rates in cache", zap.Error(err))
+		}
+	}
+
+	currencyRatesResp := make([]models.CurrencyRatesByDateResponse, 0, len(currencyRatesByDate))
+	for _, v := range currencyRatesByDate {
+		currencyRatesResp = append(currencyRatesResp, models.CurrencyRatesByDateResponse{
+			Date:         v.Date,
+			CurrencyFrom: v.Base,
+			CurrencyTo:   v.Quote,
+			Rate:         v.Rate,
+		})
+	}
+
+	return currencyRatesResp, nil
+}

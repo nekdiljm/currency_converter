@@ -22,6 +22,7 @@ type AuthService interface {
 type CurrencyConverter interface {
 	Convert(ctx context.Context, request models.ConvertRequest) (models.ConvertResponse, error)
 	GetHistoryByUserID(ctx context.Context, userID, limit, cursor int) ([]models.ConversionHistory, error)
+	GetCurrencyRatesByDate(ctx context.Context, request models.CurrencyRatesByDateRequest) ([]models.CurrencyRatesByDateResponse, error)
 }
 
 type FavoritePairs interface {
