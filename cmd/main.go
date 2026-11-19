@@ -5,6 +5,7 @@ import (
 	"currency-converter/internal/client/currencyratesprovider"
 	"currency-converter/internal/repository"
 	"currency-converter/internal/repository/conversionhistory"
+	"currency-converter/internal/repository/exchangerates"
 	"currency-converter/internal/repository/favoritepairs"
 	"currency-converter/internal/service"
 	"currency-converter/internal/service/currencyconverter"
@@ -63,15 +64,26 @@ func main() {
 		SessionsRepository: session.NewRepository(redisClient),
 		ConversionHistory:  conversionhistory.NewRepository(db),
 		FavoritePairs:      favoritepairs.NewRepository(db),
+		ExchangeRates:      exchangerates.NewRepository(db),
 	}
 
 	currencyRatesProvider := currencyratesprovider.NewClient(cfg.CurrencyRatesConfig.Host, cfg.CurrencyRatesConfig.Timeout)
 
 	services := service.Service{
-		AuthService:       auth.NewService(&cfg, repos.UserRepository, repos.SessionsRepository, logger),
-		CurrencyConverter: currencyconverter.NewService(currencyRatesProvider, repos.ConversionHistory, redisClient, logger),
-		FavoritePairs:     favpairssrv.NewService(repos.FavoritePairs, logger),
+		AuthService: auth.NewService(&cfg, repos.UserRepository, repos.SessionsRepository, logger),
+		CurrencyConverter: currencyconverter.NewService(
+			ctx,
+			currencyRatesProvider,
+			repos.ConversionHistory,
+			repos.ExchangeRates,
+			cfg.WorkerConfig,
+			redisClient,
+			logger),
+		FavoritePairs: favpairssrv.NewService(repos.FavoritePairs, logger),
 	}
+
+	logger.Info("start exchange rates worker")
+	go services.CurrencyConverter.Start(ctx)
 
 	handler := v1.NewHandler(services, logger)
 
@@ -102,6 +114,9 @@ func main() {
 	if err := server.Shutdown(ctx); err != nil {
 		logger.Error("failed to shutdown server", zap.Error(err))
 	}
+
+	logger.Info("stop exchange rates worker")
+	services.CurrencyConverter.Stop()
 
 	logger.Info("close currency rates provider")
 	currencyRatesProvider.Close()

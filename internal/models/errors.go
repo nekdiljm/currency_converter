@@ -21,4 +21,5 @@ var (
 	ErrFavoritePairAlreadyExists = errors.New("favorite pair already exists")
 	ErrFavoritePairNotFound      = errors.New("favorite pair not found")
 	ErrInvalidDateFormat         = errors.New("invalid date format")
+	ErrRateNotFound              = errors.New("error rate not found")
 )

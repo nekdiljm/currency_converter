@@ -11,6 +11,7 @@ type Repository struct {
 	SessionsRepository SessionsRepository
 	ConversionHistory  ConversionHistory
 	FavoritePairs      FavoritePairs
+	ExchangeRates      ExchangeRates
 }
 
 type UserRepository interface {
@@ -33,4 +34,9 @@ type FavoritePairs interface {
 	CreateFavoritePair(ctx context.Context, favPair models.FavoritePair) (int, error)
 	GetFavoritePairsByUserID(ctx context.Context, userID, limit, offset int) ([]models.FavoritePair, error)
 	DeleteFavoritePairByID(ctx context.Context, id int) error
+}
+
+type ExchangeRates interface {
+	CreateExchangeRates(ctx context.Context, rates []models.ExchangeRate) error
+	GetExchangeRates(ctx context.Context, from, to string) (models.ExchangeRate, error)
 }

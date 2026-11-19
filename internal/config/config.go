@@ -15,6 +15,7 @@ type Config struct {
 	JwtConfig           JwtConfig
 	LoggerConfig        LoggerConfig
 	CurrencyRatesConfig CurrencyRatesConfig
+	WorkerConfig        WorkerConfig
 }
 
 type ServerConfig struct {
@@ -47,8 +48,16 @@ type JwtConfig struct {
 }
 
 type CurrencyRatesConfig struct {
-	Host    string        `env:"CURRENCY_RATES_HOST" default:"https://api.frankfurter.dev/v2"`
-	Timeout time.Duration `env:"	CURRENCY_RATES_CLIENT_TIMEOUT" default:"10s"`
+	Host    string        `envconfig:"CURRENCY_RATES_HOST" default:"https://api.frankfurter.dev/v2"`
+	Timeout time.Duration `envconfig:"CURRENCY_RATES_CLIENT_TIMEOUT" default:"10s"`
+}
+
+type WorkerConfig struct {
+	WorkerInterval       time.Duration `envconfig:"WORKER_INTERVAL" default:"5m"`
+	WorkerRequestDate    time.Duration `envconfig:"WORKER_REQUEST_DATE" default:"24h"`
+	WorkerBatchSize      int           `envconfig:"WORKER_BATCH_SIZE" default:"100"`
+	WorkerPoolSize       int           `envconfig:"WORKER_POOL_SIZE" default:"10"`
+	WorkerBaseCurrencies []string      `envconfig:"WORKER_BASE_CURRENCIES"`
 }
 
 func Load() (Config, error) {

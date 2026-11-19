@@ -18,7 +18,7 @@ func (s *authService) generateToken(userID int, sessionID string, tokenType stri
 		"iat":  time.Now().Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(s.jwtSecret))
+	tokenString, err := token.SignedString(s.jwtSecret)
 	if err != nil {
 		return "", err
 	}
@@ -42,7 +42,6 @@ func (s *authService) parse(token, tokenType string) (int, string, error) {
 	v, ok := claims["type"].(string)
 	if !ok || v != tokenType {
 		return 0, "", fmt.Errorf("expected %s token, got %q: %w", tokenType, v, models.ErrInvalidToken)
-
 	}
 
 	sessionID, ok := claims["jti"].(string)

@@ -3,6 +3,7 @@ package currencyconverter
 import (
 	"context"
 	"currency-converter/internal/client/currencyratesprovider"
+	"currency-converter/internal/config"
 	"currency-converter/internal/models"
 	"currency-converter/internal/repository"
 	"currency-converter/internal/service"
@@ -12,27 +13,38 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
 type converterService struct {
 	currencyRates     currencyratesprovider.CurrencyRatesProvider
 	conversionHistory repository.ConversionHistory
+	exchangeRates     repository.ExchangeRates
+	workerCfg         config.WorkerConfig
 	cache             redis.Cache
 	logger            logger.Logger
+	cancel            context.CancelFunc
 }
 
 func NewService(
+	ctx context.Context,
 	currencyRates currencyratesprovider.CurrencyRatesProvider,
 	conversionHistory repository.ConversionHistory,
+	exchangeRates repository.ExchangeRates,
+	workerCfg config.WorkerConfig,
 	cache redis.Cache,
 	logger logger.Logger,
 ) service.CurrencyConverter {
+	_, cancel := context.WithCancel(ctx)
 	return &converterService{
 		currencyRates:     currencyRates,
 		conversionHistory: conversionHistory,
+		exchangeRates:     exchangeRates,
+		workerCfg:         workerCfg,
 		cache:             cache,
 		logger:            logger,
+		cancel:            cancel,
 	}
 }
 
@@ -42,13 +54,39 @@ func (s *converterService) Convert(ctx context.Context, request models.ConvertRe
 		return models.ConvertResponse{}, err
 	}
 
+	if request.CurrencyFrom == request.CurrencyTo {
+		return models.ConvertResponse{
+			ConvertedAmount: request.Amount,
+			Rate:            decimal.NewFromInt(1),
+			From:            request.CurrencyFrom,
+			To:              request.CurrencyTo,
+		}, nil
+	}
+
 	var currencyRate currencyratesprovider.CurrencyRate
 	key := fmt.Sprintf("currency-rate:%s-%s", request.CurrencyFrom, request.CurrencyTo)
+
 	if err := s.cache.Get(ctx, key, &currencyRate); err != nil {
 		currencyRate, err = s.currencyRates.GetCurrencyRatesPair(ctx, request.CurrencyFrom, request.CurrencyTo)
 		if err != nil {
-			s.logger.Error("failed to fetch currency pair", zap.Error(err), zap.Any("request", request))
-			return models.ConvertResponse{}, fmt.Errorf("failed to fetch currency pair: %w", err)
+			s.logger.Warn("failed to fetch currency rates from provider, try to take rates from db",
+				zap.Error(err),
+				zap.Any("request", request))
+
+			exchangeRate, err := s.exchangeRates.GetExchangeRates(ctx, request.CurrencyFrom, request.CurrencyTo)
+			if err != nil {
+				if errors.Is(err, models.ErrRateNotFound) {
+					s.logger.Warn("exchange rate not found", zap.Any("request", request))
+				} else {
+					s.logger.Error("failed to get exchange rate", zap.Error(err), zap.Any("request", request))
+					return models.ConvertResponse{}, err
+				}
+			}
+
+			currencyRate.Base = exchangeRate.CurrencyFrom
+			currencyRate.Quote = exchangeRate.CurrencyTo
+			currencyRate.Rate = exchangeRate.Rate
+			currencyRate.Date = exchangeRate.Date
 		}
 
 		if err = s.cache.Set(ctx, key, &currencyRate, time.Minute); err != nil {

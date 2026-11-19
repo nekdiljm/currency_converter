@@ -48,7 +48,7 @@ func Error(w http.ResponseWriter, err error) {
 
 		errResp.Error.Code = http.StatusBadRequest
 		w.WriteHeader(http.StatusBadRequest)
-	case findErr(err, models.ErrUserNotFound, models.ErrHistoryNotFound, models.ErrFavoritePairNotFound):
+	case findErr(err, models.ErrUserNotFound, models.ErrHistoryNotFound, models.ErrFavoritePairNotFound, models.ErrRateNotFound):
 		errResp.Error.Code = http.StatusNotFound
 		w.WriteHeader(http.StatusNotFound)
 	case findErr(err, models.ErrInvalidCredentials, models.ErrUnauthorized, models.ErrInvalidToken):

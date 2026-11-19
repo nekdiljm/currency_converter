@@ -49,7 +49,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (models.U
 			return models.User{}, models.ErrUserNotFound
 		}
 
-		return models.User{}, fmt.Errorf("get user by email: %w", err)
+		return models.User{}, fmt.Errorf("failed to get user by email: %w", err)
 	}
 
 	return user, nil

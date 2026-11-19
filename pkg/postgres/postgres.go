@@ -13,6 +13,7 @@ type DbCommands interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+	SendBatch(ctx context.Context, batch *pgx.Batch) pgx.BatchResults
 	Close()
 }
 
@@ -43,6 +44,10 @@ func (d *db) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
 
 func (d *db) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
 	return d.pool.Exec(ctx, sql, args...)
+}
+
+func (d *db) SendBatch(ctx context.Context, batch *pgx.Batch) pgx.BatchResults {
+	return d.pool.SendBatch(ctx, batch)
 }
 
 func (d *db) Close() {

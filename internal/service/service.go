@@ -23,6 +23,8 @@ type CurrencyConverter interface {
 	Convert(ctx context.Context, request models.ConvertRequest) (models.ConvertResponse, error)
 	GetHistoryByUserID(ctx context.Context, userID, limit, cursor int) ([]models.ConversionHistory, error)
 	GetCurrencyRatesByDate(ctx context.Context, request models.CurrencyRatesByDateRequest) ([]models.CurrencyRatesByDateResponse, error)
+	Start(ctx context.Context)
+	Stop()
 }
 
 type FavoritePairs interface {
