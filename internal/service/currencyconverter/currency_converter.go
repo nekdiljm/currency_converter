@@ -79,8 +79,8 @@ func (s *converterService) Convert(ctx context.Context, request models.ConvertRe
 					s.logger.Warn("exchange rate not found", zap.Any("request", request))
 				} else {
 					s.logger.Error("failed to get exchange rate", zap.Error(err), zap.Any("request", request))
-					return models.ConvertResponse{}, err
 				}
+				return models.ConvertResponse{}, err
 			}
 
 			currencyRate.Base = exchangeRate.CurrencyFrom

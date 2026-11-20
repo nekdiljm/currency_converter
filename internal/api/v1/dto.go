@@ -36,6 +36,7 @@ func (l loginRequest) toInput() models.LoginRequest {
 }
 
 type registerResponse struct {
+	ID        int    `json:"id"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 	Email     string `json:"email"`
@@ -44,6 +45,7 @@ type registerResponse struct {
 
 func toUserResponse(in models.User) registerResponse {
 	return registerResponse{
+		ID:        in.ID,
 		FirstName: in.FirstName,
 		LastName:  in.LastName,
 		Email:     in.Email,

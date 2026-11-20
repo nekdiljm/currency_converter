@@ -67,7 +67,7 @@ func (s *authService) Register(ctx context.Context, registerRequest models.Regis
 		Password:  string(passwordHash),
 	}
 
-	user.ID, err = s.userRepo.Create(ctx, user)
+	user, err = s.userRepo.Create(ctx, user)
 	if err != nil {
 		s.logger.Error("failed to create user", zap.Error(err))
 		return models.User{}, err

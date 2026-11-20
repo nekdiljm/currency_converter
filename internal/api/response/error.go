@@ -51,7 +51,7 @@ func Error(w http.ResponseWriter, err error) {
 	case findErr(err, models.ErrUserNotFound, models.ErrHistoryNotFound, models.ErrFavoritePairNotFound, models.ErrRateNotFound):
 		errResp.Error.Code = http.StatusNotFound
 		w.WriteHeader(http.StatusNotFound)
-	case findErr(err, models.ErrInvalidCredentials, models.ErrUnauthorized, models.ErrInvalidToken):
+	case findErr(err, models.ErrInvalidCredentials, models.ErrUnauthorized, models.ErrInvalidToken, models.ErrSessionNotFound):
 		errResp.Error.Code = http.StatusUnauthorized
 		w.WriteHeader(http.StatusUnauthorized)
 	default:

@@ -23,7 +23,7 @@ func NewRepository(db postgres.DbCommands) repository.UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) Create(ctx context.Context, user models.User) (int, error) {
+func (r *userRepository) Create(ctx context.Context, user models.User) (models.User, error) {
 	err := r.db.QueryRow(ctx,
 		`INSERT INTO users (first_name, last_name, email, password)
 			 VALUES ($1, $2, $3,$4)
@@ -31,12 +31,12 @@ func (r *userRepository) Create(ctx context.Context, user models.User) (int, err
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == uniqueViolationCode {
-			return 0, models.ErrEmailAlreadyExists
+			return models.User{}, models.ErrEmailAlreadyExists
 		}
-		return 0, fmt.Errorf("create user: %w", err)
+		return models.User{}, fmt.Errorf("create user: %w", err)
 	}
 
-	return user.ID, nil
+	return user, nil
 }
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (models.User, error) {

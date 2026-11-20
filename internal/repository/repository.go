@@ -15,7 +15,7 @@ type Repository struct {
 }
 
 type UserRepository interface {
-	Create(ctx context.Context, user models.User) (int, error)
+	Create(ctx context.Context, user models.User) (models.User, error)
 	GetByEmail(ctx context.Context, email string) (models.User, error)
 }
 
