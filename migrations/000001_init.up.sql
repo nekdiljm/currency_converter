@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS conversion_history (
     currency_to         VARCHAR(10)     NOT NULL,
     amount              NUMERIC         NOT NULL,
     result              NUMERIC         NOT NULL,
-    rate                NUMERIC,
+    rate                NUMERIC         NOT NULL,
     created_at          TIMESTAMP       NOT NULL DEFAULT NOW()
 );
 

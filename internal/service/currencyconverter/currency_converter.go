@@ -139,10 +139,7 @@ func (s *converterService) GetHistoryByUserID(ctx context.Context, userID, limit
 	return history, nil
 }
 
-func (s *converterService) GetCurrencyRatesByDate(
-	ctx context.Context,
-	request models.CurrencyRatesByDateRequest,
-) ([]models.CurrencyRatesByDateResponse, error) {
+func (s *converterService) GetCurrencyRatesByDate(ctx context.Context, request models.CurrencyRatesByDateRequest) ([]models.CurrencyRatesByDateResponse, error) {
 	if err := request.Validate(); err != nil {
 		s.logger.Warn("failed to validate currency rates by date", zap.Error(err), zap.Any("request", request))
 		return nil, err

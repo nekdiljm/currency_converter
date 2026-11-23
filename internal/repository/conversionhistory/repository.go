@@ -15,10 +15,7 @@ func NewRepository(db postgres.DbCommands) repository.ConversionHistory {
 	return &convHistoryRepository{db: db}
 }
 
-func (c *convHistoryRepository) CreateConversionHistory(
-	ctx context.Context,
-	history models.ConversionHistory,
-) error {
+func (c *convHistoryRepository) CreateConversionHistory(ctx context.Context, history models.ConversionHistory) error {
 	_, err := c.db.Exec(ctx,
 		`INSERT INTO conversion_history (user_id, currency_from, currency_to, amount, result, rate)
 			 VALUES($1, $2, $3, $4, $5, $6)`,
@@ -35,12 +32,7 @@ func (c *convHistoryRepository) CreateConversionHistory(
 	return nil
 }
 
-func (c *convHistoryRepository) GetConversionHistoryByUserID(
-	ctx context.Context,
-	userID,
-	limit,
-	cursor int,
-) ([]models.ConversionHistory, error) {
+func (c *convHistoryRepository) GetConversionHistoryByUserID(ctx context.Context, userID, limit, cursor int) ([]models.ConversionHistory, error) {
 	rows, err := c.db.Query(ctx,
 		`SELECT 
 				id, 

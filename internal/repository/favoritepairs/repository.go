@@ -37,9 +37,7 @@ func (f *favoritePairsRepository) CreateFavoritePair(ctx context.Context, favPai
 	return favPair.ID, nil
 }
 
-func (f *favoritePairsRepository) GetFavoritePairsByUserID(
-	ctx context.Context, userID, limit, offset int,
-) ([]models.FavoritePair, error) {
+func (f *favoritePairsRepository) GetFavoritePairsByUserID(ctx context.Context, userID, limit, offset int) ([]models.FavoritePair, error) {
 	rows, err := f.db.Query(ctx,
 		`SELECT id, user_id, currency_from, currency_to FROM favorite_pairs
 			 WHERE user_id = $1
