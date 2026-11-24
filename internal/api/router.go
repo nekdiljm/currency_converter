@@ -27,6 +27,10 @@ func (r *Router) InitRouter() http.Handler {
 	mux := http.NewServeMux()
 	mw := middleware.New(r.authService, r.logger)
 
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	mux.HandleFunc("POST /api/v1/register", r.handler.Register)
 	mux.HandleFunc("POST /api/v1/login", r.handler.Login)
 	mux.HandleFunc("POST /api/v1/logout", r.handler.Logout)
@@ -38,7 +42,7 @@ func (r *Router) InitRouter() http.Handler {
 
 	mux.Handle("POST /api/v1/create-favorite-pair", mw.ApplyAuth(r.handler.CreateFavoritePair))
 	mux.Handle("GET /api/v1/favorite-pairs", mw.ApplyAuth(r.handler.GetFavoritePairs))
-	mux.Handle("POST /api/v1/delete-favorite-pair", mw.ApplyAuth(r.handler.DeleteFavoritePair))
+	mux.Handle("DELETE /api/v1/delete-favorite-pair", mw.ApplyAuth(r.handler.DeleteFavoritePair))
 
 	return mw.Logging(middleware.Recover(mux))
 }
